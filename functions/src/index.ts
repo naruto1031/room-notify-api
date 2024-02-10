@@ -1,19 +1,50 @@
-/**
- * Import function triggers from their respective submodules:
- *
- * import {onCall} from "firebase-functions/v2/https";
- * import {onDocumentWritten} from "firebase-functions/v2/firestore";
- *
- * See a full list of supported triggers at https://firebase.google.com/docs/functions
- */
-
-import {onRequest} from "firebase-functions/v2/https";
+import { onRequest } from "firebase-functions/v2/https";
 import * as logger from "firebase-functions/logger";
+import * as admin from "firebase-admin";
+import { getFirestore } from "firebase-admin/firestore";
 
-// Start writing functions
-// https://firebase.google.com/docs/functions/typescript
+admin.initializeApp();
+const db = getFirestore();
 
-export const helloWorld = onRequest((request, response) => {
-  logger.info("Hello logs!", {structuredData: true});
-  response.send("Hello from Firebase!");
+interface RequestBody {
+  teacher: string;
+  guild_id: string;
+  subject: string;
+  title: string;
+  memo: string;
+  state: boolean;
+  entry_user_avatar: string;
+  entry_user_name: string;
+  entry_user_id: string;
+  entry_date: string;
+}
+
+export const external = onRequest(async (request, response) => {
+  if (request.method !== "POST") {
+    response.status(405).send("Method Not Allowed");
+    return;
+  }
+
+  try {
+    const requestData: RequestBody = request.body;
+
+    const collectionName = `notice/external/scholar_sync/guild_id/${requestData.guild_id}`;
+    const doc = await db.collection(collectionName).add({
+      teacher: requestData.teacher,
+      guildId: requestData.guild_id,
+      subject: requestData.subject,
+      title: requestData.title,
+      memo: requestData.memo,
+      state: requestData.state,
+      entry_user_avater: requestData.entry_user_avatar,
+      entry_user_name: requestData.entry_user_name,
+      entry_user_id: requestData.entry_user_id,
+      entry_date: new Date(requestData.entry_date),
+    });
+    response.status(200).send(`Document written with ID: ${doc.id}`);
+  } catch (error) {
+    logger.error("Error: ", error);
+    response.status(500).send("Internal Server Error");
+    return;
+  }
 });
