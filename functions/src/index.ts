@@ -5,6 +5,7 @@ import { getFirestore } from "firebase-admin/firestore";
 
 admin.initializeApp();
 const db = getFirestore();
+const validApiKey = process.env.API_KEY;
 
 interface RequestBody {
   teacher: string;
@@ -20,6 +21,14 @@ interface RequestBody {
 }
 
 export const external = onRequest(async (request, response) => {
+  const apiKey = request.headers["api-key"];
+
+  if (!apiKey || apiKey !== validApiKey) {
+    console.error(validApiKey, apiKey);
+    response.status(403).send("not authorized");
+    return;
+  }
+
   if (request.method !== "POST") {
     response.status(405).send("Method Not Allowed");
     return;
