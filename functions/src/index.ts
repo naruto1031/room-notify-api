@@ -17,7 +17,7 @@ interface RequestBody {
   entry_user_avatar: string;
   entry_user_name: string;
   entry_user_id: string;
-  entry_date: string;
+  entry_date: number; // Unix Time Stamp
 }
 
 export const external = onRequest(async (request, response) => {
