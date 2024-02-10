@@ -24,7 +24,6 @@ export const external = onRequest(async (request, response) => {
   const apiKey = request.headers["api-key"];
 
   if (!apiKey || apiKey !== validApiKey) {
-    console.error(validApiKey, apiKey);
     response.status(403).send("not authorized");
     return;
   }
