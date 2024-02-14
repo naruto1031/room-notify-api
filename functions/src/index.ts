@@ -18,6 +18,7 @@ interface RequestBody {
   entry_user_name: string;
   entry_user_id: string;
   entry_date: number; // Unix Time Stamp
+  is_released: boolean;
 }
 
 export const external = onRequest(async (request, response) => {
@@ -35,6 +36,16 @@ export const external = onRequest(async (request, response) => {
 
   try {
     const requestData: RequestBody = request.body;
+    
+    const subjectCollectionName = `data/channels/${requestData.guild_id}`;
+    const subjectData = await db.collection(subjectCollectionName).get();
+    const isExistSubject = subjectData.docs.some(
+      (doc) => doc.data()?.subject === requestData.subject
+    );
+    if (!isExistSubject) {
+      response.status(400).send("Bad Request");
+      return;
+    }
 
     const collectionName = `notice/external/scholar_sync/guild_id/${requestData.guild_id}`;
     const doc = await db.collection(collectionName).add({
@@ -48,7 +59,10 @@ export const external = onRequest(async (request, response) => {
       entry_user_name: requestData.entry_user_name,
       entry_user_id: requestData.entry_user_id,
       entry_date: new Date(requestData.entry_date),
+      is_released: requestData.is_released,
     });
+    
+    console.log(`Document written with ID: ${doc.id}`);
     response.status(200).send(`Document written with ID: ${doc.id}`);
   } catch (error) {
     logger.error("Error: ", error);
