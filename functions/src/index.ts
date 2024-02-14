@@ -36,7 +36,6 @@ export const external = onRequest(async (request, response) => {
 
   try {
     const requestData: RequestBody = request.body;
-    
     const subjectCollectionName = `data/channels/${requestData.guild_id}`;
     const subjectData = await db.collection(subjectCollectionName).get();
     const isExistSubject = subjectData.docs.some(
@@ -61,7 +60,6 @@ export const external = onRequest(async (request, response) => {
       entry_date: new Date(requestData.entry_date),
       is_released: requestData.is_released,
     });
-    
     console.log(`Document written with ID: ${doc.id}`);
     response.status(200).send(`Document written with ID: ${doc.id}`);
   } catch (error) {
